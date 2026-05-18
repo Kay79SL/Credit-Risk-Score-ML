@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Credit Risk PD Model — Thesis Progress Overview</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #f5efe6;
+    --bg2:      #ede3d4;
+    --bg3:      #e2d3be;
+    --navy:     #1c2b3a;
+    --navy2:    #2c3e50;
+    --mustard:  #c8871a;
+    --mustard2: #e8a020;
+    --mustard-l:#fdf3e0;
+    --rust:     #a63d2f;
+    --rust-l:   #fceae7;
+    --sage:     #4a6741;
+    --sage-l:   #e8f0e7;
+    --terracotta:#c26b3a;
+    --warm-gray:#7a6e63;
+    --border:   #c8b89a;
+    --border2:  #a89070;
+    --text:     #1c2b3a;
+    --text2:    #4a3f35;
+    --text3:    #7a6e63;
+    --card:     #faf6f0;
+    --card2:    #f0e8d8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.65;
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+
+  /* ── HEADER ─────────────────────────────────────────────── */
+  .header {
+    background: var(--navy);
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 4px solid var(--mustard);
+  }
+  .header-tag { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--mustard); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 0.6rem; }
+  .header h1 { font-family: 'Playfair Display', serif; font-size: clamp(1.6rem, 3.5vw, 2.4rem); color: #f5efe6; line-height: 1.2; margin-bottom: 0.5rem; }
+  .header h1 em { color: var(--mustard2); font-style: italic; }
+  .header-meta { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.25rem; }
+  .meta-item { border: 1px solid rgba(200,135,26,0.4); padding: 0.35rem 0.8rem; }
+  .meta-label { font-size: 9px; color: rgba(245,239,230,0.6); text-transform: uppercase; letter-spacing: 0.1em; }
+  .meta-val { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--mustard2); }
+
+  /* ── SECTION TITLES ─────────────────────────────────────── */
+  .section-title {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--navy);
+    letter-spacing: 0.2em; text-transform: uppercase;
+    background: var(--bg3); border-left: 4px solid var(--mustard);
+    padding: 0.5rem 0.85rem; margin-bottom: 1.1rem;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  section { margin-bottom: 2.5rem; }
+
+  /* ── STAT CARDS ──────────────────────────────────────────── */
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 0.6rem; }
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-top: 3px solid var(--border2); padding: 1rem 1.1rem; }
+  .stat-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.3rem; }
+  .stat-val { font-family: 'Playfair Display', serif; font-size: 1.7rem; color: var(--navy); }
+  .stat-sub { font-size: 11px; color: var(--warm-gray); margin-top: 2px; font-family: 'IBM Plex Mono', monospace; }
+  .stat-card.warn { border-top-color: var(--rust); }
+  .stat-card.warn .stat-val { color: var(--rust); }
+  .stat-card.ok { border-top-color: var(--sage); }
+  .stat-card.ok .stat-val { color: var(--sage); }
+  .stat-card.accent { border-top-color: var(--mustard); }
+  .stat-card.accent .stat-val { color: var(--mustard); }
+
+  /* ── STEPS ───────────────────────────────────────────────── */
+  .steps { display: flex; flex-direction: column; }
+  .step { display: grid; grid-template-columns: 32px 1fr; gap: 0 0.9rem; }
+  .step-left { display: flex; flex-direction: column; align-items: center; }
+  .step-num {
+    width: 32px; height: 32px; flex-shrink: 0;
+    background: var(--bg2); border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text3);
+  }
+  .step-num.done { background: var(--navy); border-color: var(--navy); color: var(--mustard); font-weight: 600; }
+  .step-num.done::after { content: '✓'; }
+  .step-num.pending { background: var(--mustard-l); border-color: var(--mustard); color: var(--mustard); }
+  .step-connector { width: 1px; background: var(--border); flex: 1; min-height: 14px; margin: 3px 0; }
+  .step-body { padding-bottom: 1.1rem; }
+  .step-title { font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 0.25rem; display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem; }
+  .step-desc { font-size: 12.5px; color: var(--text2); line-height: 1.65; }
+  .step-desc ul { margin-top: 0.35rem; padding-left: 1.1rem; }
+  .step-desc li { margin-bottom: 0.2rem; }
+  .step-tag { font-size: 10px; padding: 1px 7px; font-family: 'IBM Plex Mono', monospace; white-space: nowrap; }
+  .tag-done { background: var(--sage-l); color: var(--sage); border: 1px solid var(--sage); }
+  .tag-todo { background: var(--bg2); color: var(--text3); border: 1px solid var(--border); }
+
+  /* ── OUTLIER BOX ─────────────────────────────────────────── */
+  .outlier-box {
+    background: var(--rust-l); border: 1px solid var(--rust);
+    border-left: 4px solid var(--rust); padding: 0.75rem 1rem;
+    margin-top: 0.5rem; font-size: 12px; color: var(--navy);
+  }
+  .outlier-box strong { color: var(--rust); font-size: 10px; font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 4px; }
+
+  /* ── TRANSFORM BOX ───────────────────────────────────────── */
+  .transform-box {
+    background: var(--mustard-l); border: 1px solid var(--mustard);
+    border-left: 4px solid var(--mustard); padding: 0.75rem 1rem;
+    margin-top: 0.5rem; font-size: 12px; color: var(--navy);
+  }
+  .transform-box strong { color: var(--mustard); font-size: 10px; font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 4px; }
+
+  /* ── TRANSFORMATIONS FULL SECTION ────────────────────────── */
+  .transform-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0.6rem; }
+  .transform-card { background: var(--card); border: 1px solid var(--border); border-top: 3px solid var(--mustard); padding: 1rem 1.1rem; }
+  .transform-card.rust-top { border-top-color: var(--rust); }
+  .transform-card.sage-top { border-top-color: var(--sage); }
+  .transform-card.navy-top { border-top-color: var(--navy); }
+  .transform-card h4 { font-size: 12.5px; font-weight: 600; color: var(--navy); margin-bottom: 0.35rem; }
+  .transform-card .where { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--mustard); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.08em; }
+  .transform-card.rust-top .where { color: var(--rust); }
+  .transform-card.sage-top .where { color: var(--sage); }
+  .transform-card.navy-top .where { color: var(--navy2); }
+  .transform-card p { font-size: 12px; color: var(--text2); line-height: 1.65; }
+  code { font-family: 'IBM Plex Mono', monospace; font-size: 11px; background: var(--bg2); padding: 1px 5px; color: var(--navy); }
+
+  /* ── TABLE ───────────────────────────────────────────────── */
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); background: var(--card); }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  thead tr { background: var(--navy); }
+  th { padding: 0.7rem 0.9rem; text-align: left; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--mustard2); text-transform: uppercase; letter-spacing: 0.08em; border-right: 1px solid rgba(200,135,26,0.2); white-space: nowrap; }
+  th:last-child { border-right: none; }
+  td { padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--bg3); border-right: 1px solid var(--bg3); color: var(--text); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+  td:last-child { border-right: none; }
+  tr:last-child td { border-bottom: none; }
+  tr.best-row td { background: var(--navy); color: #f5efe6; }
+  tr.best-row td:first-child { border-left: 4px solid var(--mustard); padding-left: calc(0.9rem - 4px); }
+  tr:nth-child(even):not(.best-row) td { background: var(--bg2); }
+  .val-good { color: var(--sage); font-weight: 600; }
+  .val-mid  { color: var(--mustard); font-weight: 600; }
+  .val-low  { color: var(--text3); }
+  .badge { display: inline-block; font-size: 9px; padding: 1px 6px; font-family: 'IBM Plex Mono', monospace; margin-left: 3px; }
+  .badge-best { background: var(--mustard); color: var(--navy); }
+  .badge-warn { background: var(--rust-l); color: var(--rust); border: 1px solid var(--rust); }
+  .badge-bad  { background: var(--rust); color: #fff; }
+
+  /* ── MEAN PREDICTIONS ────────────────────────────────────── */
+  .mean-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0.6rem; }
+  .mean-card { background: var(--card); border: 1px solid var(--border); padding: 0.9rem 1rem; }
+  .mean-card.top-card { border-top: 3px solid var(--mustard); }
+  .mean-card-name { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--navy); margin-bottom: 0.55rem; font-weight: 500; }
+  .mean-row { display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; padding: 4px 0; border-bottom: 1px solid var(--bg3); }
+  .mean-row:last-child { border-bottom: none; }
+  .mean-key { color: var(--text3); }
+  .mean-val { font-family: 'IBM Plex Mono', monospace; color: var(--navy); }
+  .mean-val.hi { color: var(--mustard); font-weight: 600; }
+
+  /* ── DECISIONS ───────────────────────────────────────────── */
+  .decision-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(255px, 1fr)); gap: 0.6rem; }
+  .decision-card { background: var(--card); border: 1px solid var(--border); padding: 1rem 1.1rem; }
+  .decision-card.highlight { border-left: 4px solid var(--navy); }
+  .decision-card h4 { font-size: 12.5px; font-weight: 600; color: var(--navy); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.4rem; }
+  .decision-card p { font-size: 12px; color: var(--text2); line-height: 1.65; }
+
+  /* ── ASSUMPTIONS ─────────────────────────────────────────── */
+  .assumption-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 0.6rem; }
+  .assumption-card { background: var(--card); padding: 1rem 1.1rem; border: 1px solid var(--border); border-left: 4px solid transparent; }
+  .assumption-card.met     { border-left-color: var(--sage); }
+  .assumption-card.partial { border-left-color: var(--mustard); }
+  .assumption-card.na      { border-left-color: var(--navy2); }
+  .assumption-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.35rem; gap: 0.5rem; }
+  .assumption-model { font-size: 9.5px; font-family: 'IBM Plex Mono', monospace; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px; }
+  .assumption-title { font-size: 12.5px; font-weight: 600; color: var(--navy); }
+  .assumption-desc { font-size: 12px; color: var(--text2); line-height: 1.6; }
+  .pill { font-size: 10px; padding: 2px 8px; font-family: 'IBM Plex Mono', monospace; white-space: nowrap; flex-shrink: 0; }
+  .pill-met     { background: var(--sage-l); color: var(--sage); border: 1px solid var(--sage); }
+  .pill-partial { background: var(--mustard-l); color: var(--mustard); border: 1px solid var(--mustard); }
+  .pill-na      { background: var(--bg2); color: var(--navy2); border: 1px solid var(--navy2); }
+
+  /* ── SUMMARY ─────────────────────────────────────────────── */
+  .summary-box { background: var(--navy); padding: 1.75rem 2rem; border-bottom: 4px solid var(--mustard); }
+  .summary-box p { font-size: 13.5px; color: #e8dfd0; line-height: 1.85; }
+  .summary-box strong { color: var(--mustard2); }
+
+  /* ── LEGEND STRIP ────────────────────────────────────────── */
+  .legend-strip { display: flex; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text2); font-family: 'IBM Plex Mono', monospace; }
+  .legend-swatch { width: 14px; height: 14px; flex-shrink: 0; }
+
+  /* ── FOOTER ──────────────────────────────────────────────── */
+  .foot { margin-top: 2.5rem; padding-top: 1.25rem; border-top: 2px solid var(--border); font-size: 11px; color: var(--text3); font-family: 'IBM Plex Mono', monospace; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-tag">Thesis Progress Report · Credit Risk ML</div>
+    <h1>Probability of Default<br><em>Model Development Overview</em></h1>
+    <div class="header-meta">
+      <div class="meta-item"><div class="meta-label">Dataset</div><div class="meta-val">UCI Credit Card Clients (Yeh & Lien, 2009)</div></div>
+      <div class="meta-item"><div class="meta-label">Observations</div><div class="meta-val">30,000</div></div>
+      <div class="meta-item"><div class="meta-label">Features after FE</div><div class="meta-val">33</div></div>
+      <div class="meta-item"><div class="meta-label">Models trained</div><div class="meta-val">9</div></div>
+      <div class="meta-item"><div class="meta-label">Target</div><div class="meta-val">DEFAULT_NEXT_MONTH (binary)</div></div>
+    </div>
+  </div>
+
+  <!-- DATASET STATS -->
+  <section>
+    <div class="section-title">◆ Dataset at a glance</div>
+    <div class="stat-grid">
+      <div class="stat-card ok"><div class="stat-label">Total rows</div><div class="stat-val">30k</div><div class="stat-sub">No duplicates</div></div>
+      <div class="stat-card ok"><div class="stat-label">Missing values</div><div class="stat-val">None</div><div class="stat-sub">All 25 cols complete</div></div>
+      <div class="stat-card warn"><div class="stat-label">Default rate</div><div class="stat-val">22.1%</div><div class="stat-sub">6,636 of 30,000</div></div>
+      <div class="stat-card accent"><div class="stat-label">Train / Test</div><div class="stat-val">80/20</div><div class="stat-sub">24k train · 6k test</div></div>
+      <div class="stat-card accent"><div class="stat-label">CV folds</div><div class="stat-val">5</div><div class="stat-sub">Stratified K-Fold</div></div>
+      <div class="stat-card accent"><div class="stat-label">Engineered features</div><div class="stat-val">+10</div><div class="stat-sub">Ratios, utilization, gaps</div></div>
+      <div class="stat-card accent"><div class="stat-label">Strongest predictor</div><div class="stat-val">PAY_0</div><div class="stat-sub">Pearson r = 0.325</div></div>
+    </div>
+  </section>
+
+  <!-- TRANSFORMATIONS FULL SECTION -->
+  <section>
+    <div class="section-title">◆ Variable transformations — what, why, and where</div>
+    <div class="transform-grid">
+
+      <div class="transform-card">
+        <div class="where">Feature engineering cell</div>
+        <h4>EDUCATION & MARRIAGE — code recoding</h4>
+        <p>EDUCATION codes 0, 5, 6 collapsed to 4 ("Other"). MARRIAGE code 0 collapsed to 3 ("Other"). These values are not defined in the original dataset description. Done before encoding to prevent spurious dummy variables being created from junk codes.</p>
+      </div>
+
+      <div class="transform-card rust-top">
+        <div class="where">Feature engineering cell</div>
+        <h4>PAY_0 → PAY_0_BIN (binning)</h4>
+        <p>PAY_0 clipped from range (−2 to 8+) to (−2 to 4) using <code>.clip(lower=−2, upper=4)</code>. Values ≥ 4 collapsed into a single "4+" category. Used for EDA visualisation only — original PAY_0 retained for modelling to avoid information loss.</p>
+      </div>
+
+      <div class="transform-card">
+        <div class="where">Feature engineering cell</div>
+        <h4>PAY_RATIO1–6 (computed ratio)</h4>
+        <p><code>PAY_AMTi / (|BILL_AMTi| + 1)</code>. Absolute value prevents division issues with negative bill amounts (credits). +1 avoids division by zero when BILL_AMT is zero. Produces a continuous 0–∞ feature representing monthly repayment fraction.</p>
+      </div>
+
+      <div class="transform-card rust-top">
+        <div class="where">Cell 62 — post feature engineering</div>
+        <h4>PAY_RATIO1–6 & PAY_RATIO_6M_MEAN — clipping at 5</h4>
+        <p>Applied <code>.clip(upper=5)</code> to all 7 payment ratio columns. When BILL_AMT is near-zero, even a small payment produces extremely large ratios (e.g. 10,000+) which distort model training. Clipping at 5 caps outliers while preserving the full meaningful range (0 = no payment, 1 = full payment, 5+ = overpayment).</p>
+      </div>
+
+      <div class="transform-card">
+        <div class="where">Feature engineering cell</div>
+        <h4>BILL_AMT — clipped at 0 for utilization</h4>
+        <p>When computing UTILIZATION6M_MEAN, billing amounts are clipped at 0 using <code>.clip(lower=0)</code> before averaging. Negative BILL_AMT values represent credit balances (money owed back to the customer) and should not reduce the utilization estimate.</p>
+      </div>
+
+      <div class="transform-card sage-top">
+        <div class="where">Preprocessing pipeline cell</div>
+        <h4>Numeric features — StandardScaler</h4>
+        <p>All 30 numeric columns scaled to zero mean and unit variance. Applied inside the sklearn Pipeline — fitted on training data only and applied to test set via <code>.transform()</code>. Prevents data leakage. Essential for Logistic Regression (distance-sensitive) and PCA. Tree-based models are scale-invariant but included for pipeline consistency.</p>
+      </div>
+
+      <div class="transform-card sage-top">
+        <div class="where">Preprocessing pipeline cell</div>
+        <h4>Categorical features — OneHotEncoder</h4>
+        <p>SEX, EDUCATION, MARRIAGE converted to binary dummy columns via <code>OneHotEncoder(handle_unknown="ignore")</code>. Applied inside the same ColumnTransformer pipeline. <code>handle_unknown="ignore"</code> prevents errors if unseen categories appear at inference time. After OHE, the pipeline output expands from 33 input features to a larger numeric matrix.</p>
+      </div>
+
+      <div class="transform-card sage-top">
+        <div class="where">Preprocessing pipeline cell</div>
+        <h4>Missing value imputation — SimpleImputer</h4>
+        <p>Numeric features: <code>SimpleImputer(strategy="median")</code>. Categorical features: <code>SimpleImputer(strategy="most_frequent")</code>. No missing values were found in this dataset, but the imputer is included as a safeguard for inference-time data that may have gaps. Fitted on training data only.</p>
+      </div>
+
+      <div class="transform-card navy-top">
+        <div class="where">PCA cell (numeric features only)</div>
+        <h4>Numeric features — PCA dimensionality reduction</h4>
+        <p>StandardScaler applied separately to the 30 numeric columns. PCA fitted with <code>n_components=30</code>, then truncated to retain 95% cumulative explained variance (24 components, PC1=26.7%, PC2=15.4%). Applied to LR_PCA model only. Result: AUC dropped to 0.7052 — PCA compressed the dominant PAY_0 signal, confirming dimensionality reduction is not beneficial here.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- STEPS -->
+  <section>
+    <div class="section-title">◆ Work completed — step by step</div>
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-left"><div class="step-num done"></div><div class="step-connector"></div></div>
+        <div class="step-body">
+          <div class="step-title">1. Data loading & column cleaning <span class="step-tag tag-done">Done</span></div>
+          <div class="step-desc">Loaded UCI XLS via <code>xlrd</code> (header=1). Renamed target to <code>DEFAULT_NEXT_MONTH</code>. 30,000 rows × 25 columns. Zero missing values, zero duplicate IDs confirmed.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num done"></div><div class="step-connector"></div></div>
+        <div class="step-body">
+          <div class="step-title">2. EDA — target & class imbalance <span class="step-tag tag-done">Done</span></div>
+          <div class="step-desc">Default rate = 22.12% (6,636 defaults). Imbalanced dataset — accuracy is misleading. ROC-AUC chosen as primary metric. Stratified split and class imbalance corrections applied to all models.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num done"></div><div class="step-connector"></div></div>
+        <div class="step-body">
+          <div class="step-title">3. EDA — categorical variable distributions <span class="step-tag tag-done">Done</span></div>
+          <div class="step-desc">SEX: 2 categories (18,112 female / 11,888 male). EDUCATION: 7 values including undocumented codes 0 (n=14), 5 (n=280), 6 (n=51). MARRIAGE: 4 values including undocumented code 0 (n=54).
+            <div class="outlier-box"><strong>Outlier / anomaly — EDUCATION & MARRIAGE undocumented codes</strong>Codes 0, 5, 6 in EDUCATION and 0 in MARRIAGE are not defined in the original dataset description (Yeh & Lien, 2009). Decision: recoded to existing "Other" categories (EDUCATION → 4, MARRIAGE → 3) before OneHot encoding. This prevents spurious dummy variables and avoids models learning patterns from data entry artefacts.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num done"></div><div class="step-connector"></div></div>
+        <div class="step-body">
+          <div class="step-title">4. EDA — numeric variable distributions & outlier investigation <span class="step-tag tag-done">Done</span></div>
+          <div class="step-desc">LIMIT_BAL and AGE inspected via histograms and boxplots. LIMIT_BAL strongly right-skewed.
+            <div class="outlier-box"><strong>Outlier — LIMIT_BAL = 1,000,000 (single customer, ID 2198)</strong>BILL_AMT ranging 535k–984k across 6 months. PAY_AMT3 = 896,040 (exceptionally large single payment). Customer has no payment delay history (all PAY_X = 0 or negative) and did not default. Manual investigation confirmed this is a legitimate high-value account, not a data entry error. Decision: <strong>retained as-is</strong>. No capping or removal applied to LIMIT_BAL.</div>
+            <div class="outlier-box"><strong>Outlier — customers with LIMIT_BAL > 500,000 (n ≈ several dozen)</strong>Inspected separately. Similar pattern — high billing, regular payments, no delay. Confirmed as genuine high-credit-limit customers. Decision: <strong>retained</strong>. StandardScaler in the pipeline normalises these extreme values for Logistic Regression. Tree-based models are unaffected by scale.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num done"></div><div class="step-connector"></div></div>
+        <div class="step-body">
+          <div class="step-title">5. EDA — repayment status analysis <span class="step-tag tag-done">Done</span></div>
+          <div class="step-desc">PAY_0 is the strongest single predictor (Pearson r=0.325). Default rate gradient by PAY_0: on-time 12.8% → 1 month late 33.9% → 2 months late 69.1% → 3 months late 75.8% → 7+ months 77.8%. Recency effect: PAY_0 > PAY_2 > PAY_3 > PAY_4 > PAY_5 > PAY_6. PAY_0 binned to PAY_0_BIN (clipped −2 to 4) for EDA only.
+            <div class="outlier-box"><strong>Outlier — PAY_0 extreme categories (PAY_0 = 7, 8)</strong>PAY_0 = 7: n=9 customers, default rate 77.78%. PAY_0 = 8: n=19 customers, default rate 57.89%. Very small groups with near-complete separation. Decision: retained in the original PAY_0 feature for modelling. For LR, this near-complete separation in small subgroups may cause quasi-separation in coefficient estimation — noted as a partial assumption violation.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num done"></div><div class="step-connector"></div></div>
+        <div class="step-body">
+          <div class="step-title">6. EDA — billing & payment patterns <span class="step-tag tag-done">Done</span></div>
+          <div class="step-desc">Strong right skew confirmed across all BILL_AMT and PAY_AMT columns: mean >> median throughout. BILL_AMT1 mean=51,223 vs median=22,381. Bills trend downward month 1→6 (51k→39k mean). Payments also right-skewed — PAY_AMT1 mean=5,663 vs median=2,100.
+            <div class="outlier-box"><strong>Outlier — extreme billing and payment amounts</strong>Confirmed to be linked to the high LIMIT_BAL customers already investigated. No separate treatment applied to the raw values. Right skew in BILL_AMT and PAY_AMT handled downstream by: (1) StandardScaler for LR; (2) PAY_RATIO features which normalise by bill amount; (3) UTILIZATION feature which clips negative bills at 0. Tree-based models (RF, XGB) are inherently robust to skewed distributions.</div>
+            <div class="transform-box"><strong>Skewness — what was done, where, and how it affects the models</strong>
+              No log transformation or Box-Cox applied to BILL_AMT or PAY_AMT directly. The skew is addressed through three mechanisms applied at different stages:
+              <br><br>
+              <strong>(1) StandardScaler — applied in Step 10 (Preprocessing Pipeline), fitted on X_train only.</strong><br>
+              StandardScaler subtracts the column mean and divides by the standard deviation, producing features with mean=0 and std=1. It does not remove skew — a right-skewed distribution stays right-skewed, just centred and rescaled. What it does do is equalise the magnitude of all numeric features so that no single column dominates the LR loss function simply because its values are large. Without scaling, BILL_AMT (range 0–983,000) and AGE (range 21–79) would contribute vastly different raw numbers to the log-odds sum — LR's gradient descent would chase the large-magnitude feature and produce tiny, unstable coefficients for the rest. After StandardScaler, all features are on the same ≈ −3 to +3 scale, coefficients are numerically stable, and the optimiser converges faster and more reliably.
+              <br><br>
+              <strong>(2) PAY_RATIO features — applied in Step 8 (Feature Engineering), before the split.</strong><br>
+              This is more than just a scaling fix — it is a fundamentally different representation of the data. Raw BILL_AMT tells LR the size of the debt; raw PAY_AMT tells LR the size of the payment. Neither alone tells LR the relationship between the two — which is the actual credit risk signal. <code>PAY_RATIO = PAY_AMT / (|BILL_AMT| + 1)</code> compresses both into one bounded feature that directly encodes the behavioural question: what fraction of what was owed got paid back?<br>
+              Consider two customers both with BILL_AMT = 50,000: Customer A paid 49,500 (PAY_RATIO ≈ 0.99); Customer B paid 500 (PAY_RATIO ≈ 0.01). After StandardScaler, both have identical scaled BILL_AMT. Only PAY_RATIO distinguishes them. LR can assign a single clear coefficient to PAY_RATIO: high ratio → low default risk, low ratio → high default risk. The relationship is monotonic and approximately linear in log-odds space, which is exactly what LR is designed to exploit. After clipping at 5, PAY_RATIO ranges 0–5 — already close to the ≈ −3 to +3 range StandardScaler will produce, so it arrives at the pipeline in a stable, well-conditioned state. The raw BILL_AMT and PAY_AMT columns are retained alongside PAY_RATIO because they carry complementary information (total exposure level, absolute repayment capacity) that the ratio alone does not convey.
+              <br><br>
+              <strong>(3) UTILIZATION6M_MEAN — applied in Step 8, before the split.</strong><br>
+              Divides the 6-month average bill by credit limit, producing a 0–1+ bounded ratio that is far less skewed than raw BILL_AMT and directly interpretable as credit usage pressure. Same logic as PAY_RATIO — the ratio captures the meaningful relationship that the raw values cannot.
+              <br><br>
+              <strong>Tree-based models (RF, XGBoost):</strong> unaffected by any of the above. They make splits on ordinal thresholds — whether BILL_AMT is 50,000 or 50 is irrelevant as long as the rank order is preserved. Skew, scale, and magnitude do not affect split quality.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num done"></div><div class="step-connector"></div></div>
+        <div class="step-body">
+          <div class="step-title">7. EDA — correlation analysis (Pearson & Spearman) <span class="step-tag tag-done">Done</span></div>
+          <div class="step-desc">Both Pearson and Spearman computed. PAY_0–PAY_6 dominate both. PAY_AMT1–6 show weak Pearson (~0.06) but moderate Spearman (~0.13–0.16) — indicates non-linear monotonic relationship that Pearson misses. LIMIT_BAL Pearson=0.154, Spearman=0.170. BILL_AMT columns weak and negative (high bills alone do not predict default; payment behaviour matters more).
+            <div class="outlier-box"><strong>Multicollinearity — variables with high inter-correlation</strong>
+              Several variable groups are strongly correlated with each other, not just with the target. Key multicollinearity concerns identified:
+              <ul style="margin-top:6px;padding-left:1rem;">
+                <li><strong>BILL_AMT1–6:</strong> Highly intercorrelated (r ≈ 0.85–0.95 between adjacent months). A customer's outstanding balance changes slowly, so consecutive months are nearly identical. This is the strongest collinearity in the dataset. Addressed by creating BILL_TOTAL_6M (aggregate) and UTILIZATION6M_MEAN (ratio) as summary features, reducing the need to include all 6 raw columns individually.</li>
+                <li><strong>PAY_AMT1–6:</strong> Moderately intercorrelated (r ≈ 0.50–0.70). Customers who pay well in one month tend to pay well in others. Addressed by creating PAY_TOTAL_6M and PAY_RATIO_6M_MEAN as summaries.</li>
+                <li><strong>PAY_0 and PAY_0_BIN:</strong> Near-perfect correlation by construction (PAY_0_BIN is a clipped version of PAY_0). Decision: PAY_0_BIN dropped from the modelling dataset — PAY_0 retained.</li>
+                <li><strong>PAY_RATIO_6M_MEAN and PAY_RATIOi:</strong> PAY_RATIO_6M_MEAN is the arithmetic mean of PAY_RATIO1–6, so it is collinear with each individual ratio. Both included deliberately — the individual ratios carry month-specific timing information; the mean carries the 6-month summary signal. For LR this creates mild redundancy; tree-based models handle it via feature selection at each split.</li>
+                <li><strong>BILL_TOTAL_6M and BILL_AMTi:</strong> BILL_TOTAL_6M is the sum of BILL_AMT1–6, so it is linearly dependent on them. Acceptable because BILL_TOTAL_6M replaces rather than supplements the individual columns in the intended modelling signal.</li>
+                <li><strong>AVG_DELAY_6M and PAY_0–PAY_6:</strong> AVG_DELAY_6M is the mean of the six PAY_X columns, so it is collinear with each. Again, the aggregate captures overall delinquency level while individual columns capture timing — both retained intentionally.</li>
+              </ul>
+              <strong>Impact on models:</strong> Logistic Regression is most sensitive to multicollinearity (inflated standard errors, unstable coefficients). However since prediction rather than coefficient interpretation is the primary goal, and since class_weight="balanced" and regularisation (C parameter) are applied, multicollinearity does not invalidate the LR model — it just makes individual coefficient values less interpretable. Random Forest and XGBoost are largely unaffected by multicollinearity as they use greedy feature selection at each split.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num done"></div><div class="step-connector"></div></div>
+        <div class="step-body">
+          <div class="step-title">8. Feature engineering — 10 new features <span class="step-tag tag-done">Done</span></div>
+          <div class="step-desc">
+            <ul>
+              <li><strong>PAY_RATIO1–6:</strong> PAY_AMTi / (|BILL_AMTi| + 1) — monthly repayment fraction</li>
+              <li><strong>UTILIZATION6M_MEAN:</strong> mean(BILL_AMT1–6 clipped ≥ 0) / (LIMIT_BAL + 1) — credit usage</li>
+              <li><strong>BILL_TOTAL_6M:</strong> sum of BILL_AMT1–6 — total 6-month exposure</li>
+              <li><strong>PAY_TOTAL_6M:</strong> sum of PAY_AMT1–6 — total 6-month repayments</li>
+              <li><strong>PAY_RATIO_6M_MEAN:</strong> mean of PAY_RATIO1–6 — summary repayment signal</li>
+              <li><strong>LATE_COUNT_6M:</strong> count of months where PAY_X > 0</li>
+              <li><strong>MAX_DELAY_6M:</strong> max delay month across PAY_0–PAY_6</li>
+              <li><strong>AVG_DELAY_6M:</strong> mean delay across PAY_0–PAY_6</li>
+              <li><strong>PAY_GAP_6M_TOTAL:</strong> BILL_TOTAL_6M − PAY_TOTAL_6M (net debt accumulation)</li>
+            </ul>
+            <div class="transform-box"><strong>Transformations applied here — yes, these are the same transformations listed in the "Variable Transformations" section above</strong>The dedicated transformations section at the top of this document lists every transform across the entire pipeline for easy reference. This step is where the following were first applied to the data: EDUCATION/MARRIAGE recoding (0,5,6→4 and 0→3); PAY_0_BIN creation via clip(lower=−2, upper=4); BILL_AMT clipping at 0 for the UTILIZATION feature; the +1 denominator adjustment in PAY_RATIO to prevent division by zero. All are within-row arithmetic only — no cross-row aggregation — which is why applying these before the train/test split is valid and does not cause data leakage. The StandardScaler, OneHotEncoder, and imputation are NOT done here — those happen in Step 10 (preprocessing pipeline), fitted on training data only.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num done"></div><div class="step-connector"></div></div>
+        <div class="step-body">
+          <div class="step-title">9. PAY_RATIO clipping at 5 <span class="step-tag tag-done">Done</span></div>
+          <div class="step-desc">A separate post-engineering step applied to all 7 payment ratio columns: <code>PAY_RATIO1</code> through <code>PAY_RATIO6</code> and <code>PAY_RATIO_6M_MEAN</code>. The <code>.clip(upper=5)</code> operation was applied to the full dataset (df_fe) before the train/test split.
+            <div class="outlier-box"><strong>Outlier — extreme PAY_RATIO values and why they arise</strong>
+              PAY_RATIO is computed as <code>PAY_AMT / (|BILL_AMT| + 1)</code>. The denominator (+1) prevents division by zero when BILL_AMT = 0, but it creates a different problem: when BILL_AMT is legitimately very small (e.g. 1 or 2 NTD), even a modest payment produces a very large ratio. Examples from the data: BILL_AMT=1, PAY_AMT=5,000 → ratio = 2,500. BILL_AMT=0, PAY_AMT=3,000 → ratio = 3,000. This happens in months where a customer has paid off their entire balance and the new statement has not yet arrived — a completely normal situation.<br><br>
+              These values are not errors, but they behave like outliers in the model: they dominate the feature range, compress all other values toward zero in relative terms, and distort gradient calculations in Logistic Regression and XGBoost, and threshold selection in tree-based models.<br><br>
+              <strong>Why clip at 5 specifically:</strong> The value 5 was chosen to preserve the full interpretable range — a ratio of 1.0 means the customer paid exactly their bill; 2.0 means they paid double; 5.0 means they paid five times the outstanding amount. Beyond 5, the risk signal is identical (the customer is not in financial distress regardless of the exact multiple). The threshold of 5 was determined by domain reasoning rather than a formal percentile cutoff, but it is consistent with credit risk industry practice of capping repayment ratios at 3–5× for behavioural scoring.<br><br>
+              <strong>Columns affected:</strong> PAY_RATIO1, PAY_RATIO2, PAY_RATIO3, PAY_RATIO4, PAY_RATIO5, PAY_RATIO6, PAY_RATIO_6M_MEAN — all 7 ratio columns.<br>
+              <strong>Decision:</strong> Clipped at 5. Raw values above 5 replaced with 5. No rows removed.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num done"></div><div class="step-connector"></div></div>
+        <div class="step-body">
+          <div class="step-title">10. Preprocessing pipeline built <span class="step-tag tag-done">Done</span></div>
+          <div class="step-desc">ColumnTransformer with two branches: numeric (30 cols → SimpleImputer median → StandardScaler) and categorical (3 cols → SimpleImputer mode → OneHotEncoder). Pipeline fitted on X_train only. 80/20 stratified split: 24,000 train, 6,000 test.
+            <div class="transform-box"><strong>Transformations applied here (train fit, test transform)</strong>StandardScaler: zero-centres and unit-scales all 30 numeric features. OneHotEncoder: SEX, EDUCATION, MARRIAGE → binary dummies. SimpleImputer: safeguard only (no actual missing values in this dataset). All fitted on X_train exclusively via Pipeline.fit() then applied to X_test via Pipeline.transform().</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num done"></div><div class="step-connector"></div></div>
+        <div class="step-body">
+          <div class="step-title">11. Baseline model training — 4 models <span class="step-tag tag-done">Done</span></div>
+          <div class="step-desc">Logistic Regression (class_weight="balanced", max_iter=5000), Decision Tree (class_weight="balanced", max_depth=6, min_samples_leaf=50), Random Forest (300 trees, class_weight="balanced", min_samples_leaf=10), XGBoost (scale_pos_weight=3.52, learning_rate=0.05, max_depth=5, n_estimators=300).</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num done"></div><div class="step-connector"></div></div>
+        <div class="step-body">
+          <div class="step-title">12. Hyperparameter tuning — GridSearchCV, 5-fold CV <span class="step-tag tag-done">Done</span></div>
+          <div class="step-desc">LR: 40 fits — best C=10, solver=saga. DT: 225 fits — best max_depth=6, min_samples_leaf=50, min_samples_split=20. RF: 60 fits — best max_depth=None, min_samples_leaf=20, n_estimators=300. XGB: 40 fits — best learning_rate=0.1, max_depth=3, n_estimators=100. Key finding: LR and DT show zero improvement post-tuning.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num done"></div><div class="step-connector"></div></div>
+        <div class="step-body">
+          <div class="step-title">13. PCA + Logistic Regression <span class="step-tag tag-done">Done</span></div>
+          <div class="step-desc">Separate StandardScaler on 30 numeric columns. PCA: 30 components, truncated to 24 (95% variance). LR fitted on reduced space. AUC = 0.7052 — worst model. PCA compressed the dominant PAY_0 signal, confirming dimensionality reduction is harmful here.
+            <div class="transform-box"><strong>Transformation applied here</strong>Additional StandardScaler fitted on X_train numeric only. PCA fitted on scaled X_train. Both applied to X_test numeric only. This is a separate pipeline from the main one — applies to LR_PCA model only.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num done"></div><div class="step-connector"></div></div>
+        <div class="step-body">
+          <div class="step-title">14. Friedman + Nemenyi statistical comparison <span class="step-tag tag-done">Done</span></div>
+          <div class="step-desc">Friedman χ²=32.44, p=0.000034 — global difference confirmed. Nemenyi post-hoc: RF_Tuned and XGB_Tuned are joint best (avg rank 1.8 each, p=1.000). Both significantly outperform LR (p=0.003). DT cluster not significantly different from top tier (p=0.247). LR and LR_Tuned statistically identical (p=0.999).</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num done"></div><div class="step-connector"></div></div>
+        <div class="step-body">
+          <div class="step-title">15. PD output table & decision bands <span class="step-tag tag-done">Done</span></div>
+          <div class="step-desc">XGB_Tuned used to score test set (n=6,000). Three decision bands applied: Approve (PD &lt; 0.20), Review (0.20–0.50), Reject (&gt; 0.50). Sample of 20 rows output confirmed correct mix of approvals, reviews, and rejections.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num pending"></div><div class="step-connector"></div></div>
+        <div class="step-body">
+          <div class="step-title">16. DeLong pairwise AUC test <span class="step-tag tag-todo">To do</span></div>
+          <div class="step-desc">FastDeLong code written and ready. Will test whether AUC gaps between top models are statistically significant (DeLong et al., 1988, Biometrics).</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num pending"></div><div class="step-connector"></div></div>
+        <div class="step-body">
+          <div class="step-title">17. Final model selection — based on DeLong results <span class="step-tag tag-todo">To do</span></div>
+          <div class="step-desc">Once DeLong pairwise results are available, use the p-values to make a statistically justified final model choice using the following decision logic:
+            <ul style="margin-top:6px;padding-left:1rem;">
+              <li><strong>If XGB_Tuned vs RF_Tuned p &lt; 0.05:</strong> The AUC difference is statistically significant — select XGB_Tuned as the single best model based on higher AUC (0.7811) and better recall on defaulters (0.6172). Report DeLong z-stat and p-value in thesis.</li>
+              <li><strong>If XGB_Tuned vs RF_Tuned p ≥ 0.05:</strong> AUC difference is not significant (consistent with Nemenyi p=1.000). Both models are statistically equivalent. Final selection then defaults to business criteria: (a) if recall on defaulters is the priority → XGB_Tuned (0.6172 vs 0.5855); (b) if precision and F1 are the priority → RF_Tuned (F1=0.5409, Precision=0.5026). Document the selection rationale explicitly in the thesis.</li>
+              <li><strong>If any other model pair shows p &lt; 0.05:</strong> Update the model comparison narrative to reflect which AUC gaps are real vs noise. This may affect which tier groupings are reported.</li>
+            </ul>
+            <div class="transform-box"><strong>Why this step matters</strong>Without DeLong, choosing XGB_Tuned over RF_Tuned rests only on a 0.0046 AUC difference which may be within sampling noise from the single 6,000-row test set. DeLong provides the statistical backing to either confirm or deny that difference. This is standard practice in clinical and financial ML model selection — the selected model must be defensible not just by the number but by a p-value. Reference in thesis: DeLong et al. (1988), Dietterich (1998).</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num pending"></div><div class="step-connector"></div></div>
+        <div class="step-body">
+          <div class="step-title">18. SHAP explainability <span class="step-tag tag-todo">To do</span></div>
+          <div class="step-desc">Global and local SHAP values for XGB_Tuned and RF_Tuned. Feature importance waterfall, beeswarm, and dependency plots. Required for EU AI Act high-risk system transparency obligations.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num pending"></div></div>
+        <div class="step-body">
+          <div class="step-title">19. Governance — Model Card & Regulatory Checklist <span class="step-tag tag-todo">To do</span></div>
+          <div class="step-desc">Basel II/III PD model validation requirements. EU AI Act high-risk classification. Fairness checks across SEX, EDUCATION, MARRIAGE demographic groups. Model card documentation.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- MEAN PREDICTIONS -->
+  <section>
+    <div class="section-title">◆ Mean predicted probability of default — per model</div>
+    <div class="mean-grid">
+      <div class="mean-card top-card">
+        <div class="mean-card-name">XGB_Tuned ★ Best AUC</div>
+        <div class="mean-row"><span class="mean-key">Overall mean PD</span><span class="mean-val hi">0.2212</span></div>
+        <div class="mean-row"><span class="mean-key">Mean PD | actual=0</span><span class="mean-val">~0.147</span></div>
+        <div class="mean-row"><span class="mean-key">Mean PD | actual=1</span><span class="mean-val hi">~0.481</span></div>
+        <div class="mean-row"><span class="mean-key">Separation gap</span><span class="mean-val hi">~0.334</span></div>
+        <div class="mean-row"><span class="mean-key">ROC-AUC</span><span class="mean-val hi">0.7811</span></div>
+        <div class="mean-row"><span class="mean-key">Recall (defaults)</span><span class="mean-val hi">0.6172</span></div>
+      </div>
+      <div class="mean-card top-card">
+        <div class="mean-card-name">RF_Tuned ★ Best F1</div>
+        <div class="mean-row"><span class="mean-key">Overall mean PD</span><span class="mean-val hi">0.2212</span></div>
+        <div class="mean-row"><span class="mean-key">Mean PD | actual=0</span><span class="mean-val">~0.146</span></div>
+        <div class="mean-row"><span class="mean-key">Mean PD | actual=1</span><span class="mean-val hi">~0.479</span></div>
+        <div class="mean-row"><span class="mean-key">Separation gap</span><span class="mean-val hi">~0.333</span></div>
+        <div class="mean-row"><span class="mean-key">ROC-AUC</span><span class="mean-val hi">0.7765</span></div>
+        <div class="mean-row"><span class="mean-key">Recall (defaults)</span><span class="mean-val">0.5855</span></div>
+      </div>
+      <div class="mean-card">
+        <div class="mean-card-name">Random Forest</div>
+        <div class="mean-row"><span class="mean-key">Overall mean PD</span><span class="mean-val">0.2212</span></div>
+        <div class="mean-row"><span class="mean-key">Mean PD | actual=0</span><span class="mean-val">~0.149</span></div>
+        <div class="mean-row"><span class="mean-key">Mean PD | actual=1</span><span class="mean-val">~0.467</span></div>
+        <div class="mean-row"><span class="mean-key">Separation gap</span><span class="mean-val">~0.318</span></div>
+        <div class="mean-row"><span class="mean-key">ROC-AUC</span><span class="mean-val">0.7756</span></div>
+        <div class="mean-row"><span class="mean-key">Recall (defaults)</span><span class="mean-val">0.5524</span></div>
+      </div>
+      <div class="mean-card">
+        <div class="mean-card-name">XGBoost</div>
+        <div class="mean-row"><span class="mean-key">Overall mean PD</span><span class="mean-val">0.2212</span></div>
+        <div class="mean-row"><span class="mean-key">Mean PD | actual=0</span><span class="mean-val">~0.152</span></div>
+        <div class="mean-row"><span class="mean-key">Mean PD | actual=1</span><span class="mean-val">~0.462</span></div>
+        <div class="mean-row"><span class="mean-key">Separation gap</span><span class="mean-val">~0.310</span></div>
+        <div class="mean-row"><span class="mean-key">ROC-AUC</span><span class="mean-val">0.7747</span></div>
+        <div class="mean-row"><span class="mean-key">Recall (defaults)</span><span class="mean-val">0.6134</span></div>
+      </div>
+      <div class="mean-card">
+        <div class="mean-card-name">DT / DT_Tuned (identical)</div>
+        <div class="mean-row"><span class="mean-key">Overall mean PD</span><span class="mean-val">0.2212</span></div>
+        <div class="mean-row"><span class="mean-key">Mean PD | actual=0</span><span class="mean-val">~0.161</span></div>
+        <div class="mean-row"><span class="mean-key">Mean PD | actual=1</span><span class="mean-val">~0.435</span></div>
+        <div class="mean-row"><span class="mean-key">Separation gap</span><span class="mean-val">~0.274</span></div>
+        <div class="mean-row"><span class="mean-key">ROC-AUC</span><span class="mean-val">0.7605</span></div>
+        <div class="mean-row"><span class="mean-key">Recall (defaults)</span><span class="mean-val">0.5637</span></div>
+      </div>
+      <div class="mean-card">
+        <div class="mean-card-name">LR / LR_Tuned (identical)</div>
+        <div class="mean-row"><span class="mean-key">Overall mean PD</span><span class="mean-val">0.2212</span></div>
+        <div class="mean-row"><span class="mean-key">Mean PD | actual=0</span><span class="mean-val">~0.178</span></div>
+        <div class="mean-row"><span class="mean-key">Mean PD | actual=1</span><span class="mean-val">~0.355</span></div>
+        <div class="mean-row"><span class="mean-key">Separation gap</span><span class="mean-val">~0.177</span></div>
+        <div class="mean-row"><span class="mean-key">ROC-AUC</span><span class="mean-val">0.7115</span></div>
+        <div class="mean-row"><span class="mean-key">Recall (defaults)</span><span class="mean-val">0.6217</span></div>
+      </div>
+      <div class="mean-card">
+        <div class="mean-card-name">LR_PCA — Worst</div>
+        <div class="mean-row"><span class="mean-key">Overall mean PD</span><span class="mean-val">0.2212</span></div>
+        <div class="mean-row"><span class="mean-key">Mean PD | actual=0</span><span class="mean-val">~0.181</span></div>
+        <div class="mean-row"><span class="mean-key">Mean PD | actual=1</span><span class="mean-val">~0.347</span></div>
+        <div class="mean-row"><span class="mean-key">Separation gap</span><span class="mean-val">~0.166</span></div>
+        <div class="mean-row"><span class="mean-key">ROC-AUC</span><span class="mean-val">0.7052</span></div>
+        <div class="mean-row"><span class="mean-key">Recall (defaults)</span><span class="mean-val">0.6134</span></div>
+      </div>
+    </div>
+    <p style="font-size:11px;color:var(--text3);margin-top:0.6rem;font-family:'IBM Plex Mono',monospace;">All models use class_weight="balanced" or scale_pos_weight — overall mean PD equals true prevalence (22.12%) by design. The separation gap (mean PD for actual=1 minus actual=0) measures discrimination power directly.</p>
+  </section>
+
+  <!-- MODEL COMPARISON TABLE -->
+  <section>
+    <div class="section-title">◆ Final model comparison — all 9 models</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Accuracy</th>
+            <th>Precision</th>
+            <th>Recall (default)</th>
+            <th>F1 (default)</th>
+            <th>ROC-AUC</th>
+            <th>CV AUC mean</th>
+            <th>Tuning gain</th>
+            <th>Note</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="best-row">
+            <td>XGB_Tuned</td>
+            <td>0.7625</td>
+            <td>0.4718</td>
+            <td>0.6172</td>
+            <td>0.5348</td>
+            <td>0.7811 <span class="badge badge-best">best AUC</span></td>
+            <td>0.7842</td>
+            <td>+0.0064</td>
+            <td>Best AUC + recall</td>
+          </tr>
+          <tr class="best-row">
+            <td>RF_Tuned</td>
+            <td>0.7802</td>
+            <td>0.5026</td>
+            <td>0.5855</td>
+            <td>0.5409 <span class="badge badge-best">best F1</span></td>
+            <td>0.7765</td>
+            <td>0.7847</td>
+            <td>+0.0009</td>
+            <td>Best F1 + precision</td>
+          </tr>
+          <tr>
+            <td>RandomForest</td>
+            <td>0.7923</td>
+            <td>0.5292</td>
+            <td>0.5524</td>
+            <td>0.5406</td>
+            <td>0.7756</td>
+            <td>0.7830</td>
+            <td>—</td>
+            <td>Highest accuracy</td>
+          </tr>
+          <tr>
+            <td>XGBoost</td>
+            <td>0.7628</td>
+            <td>0.4722</td>
+            <td>0.6134</td>
+            <td>0.5336</td>
+            <td>0.7747</td>
+            <td>0.7799</td>
+            <td>—</td>
+            <td>Strong baseline</td>
+          </tr>
+          <tr>
+            <td>DT_Tuned</td>
+            <td>0.7693</td>
+            <td>0.4816</td>
+            <td>0.5637</td>
+            <td>0.5194</td>
+            <td>0.7605</td>
+            <td>0.7614</td>
+            <td class="val-mid">0.0000</td>
+            <td><span class="badge badge-warn">No gain</span></td>
+          </tr>
+          <tr>
+            <td>DecisionTree</td>
+            <td>0.7693</td>
+            <td>0.4816</td>
+            <td>0.5637</td>
+            <td>0.5194</td>
+            <td>0.7605</td>
+            <td>0.7614</td>
+            <td>—</td>
+            <td>Identical to DT_Tuned</td>
+          </tr>
+          <tr>
+            <td>LR_Tuned</td>
+            <td>0.6808</td>
+            <td>0.3688</td>
+            <td>0.6225</td>
+            <td>0.4631</td>
+            <td>0.7115</td>
+            <td>0.7244</td>
+            <td class="val-mid">0.0000</td>
+            <td><span class="badge badge-warn">No gain</span></td>
+          </tr>
+          <tr>
+            <td>LogisticRegression</td>
+            <td>0.6810</td>
+            <td>0.3688</td>
+            <td>0.6217</td>
+            <td>0.4630</td>
+            <td>0.7115</td>
+            <td>0.7243</td>
+            <td>—</td>
+            <td>Baseline linear</td>
+          </tr>
+          <tr>
+            <td>LR_PCA</td>
+            <td>0.6847</td>
+            <td>0.3712</td>
+            <td>0.6134</td>
+            <td>0.4625</td>
+            <td class="val-low">0.7052</td>
+            <td>—</td>
+            <td>—</td>
+            <td><span class="badge badge-bad">Worst AUC</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- DECISIONS -->
+  <section>
+    <div class="section-title">◆ Key decisions made</div>
+    <div class="decision-grid">
+      <div class="decision-card highlight">
+        <h4>📊 Primary metric: ROC-AUC not accuracy</h4>
+        <p>22.12% default rate makes accuracy misleading — always predicting no-default scores 77.88%. ROC-AUC measures ranking ability across all thresholds, directly relevant to credit scoring.</p>
+      </div>
+      <div class="decision-card highlight">
+        <h4>⚖️ Class imbalance corrections</h4>
+        <p><code>class_weight="balanced"</code> for LR, DT, RF. <code>scale_pos_weight=3.52</code> (23,364/6,636) for XGBoost. Stratified 80/20 split preserves 78/22 class ratio in both sets.</p>
+      </div>
+      <div class="decision-card">
+        <h4>🔢 Categorical encoding: OneHotEncoder</h4>
+        <p>SEX, EDUCATION, MARRIAGE converted to binary dummies inside the sklearn Pipeline. Undocumented codes recoded first. <code>handle_unknown="ignore"</code> protects inference-time robustness.</p>
+      </div>
+      <div class="decision-card">
+        <h4>📏 Numeric scaling: StandardScaler</h4>
+        <p>Fitted on training data only, applied to test via Pipeline. Essential for LR and PCA. Tree-based models scale-invariant but included for pipeline consistency and fair comparison.</p>
+      </div>
+      <div class="decision-card">
+        <h4>🗑️ PAY_0_BIN dropped from modelling</h4>
+        <p>Created for EDA visualisation only (clipped −2 to 4). Original PAY_0 retained for modelling to avoid information loss and multicollinearity with the continuous PAY_0 feature.</p>
+      </div>
+      <div class="decision-card">
+        <h4>✂️ PAY_RATIO clipped at 5</h4>
+        <p>Extreme ratios (up to thousands) when BILL_AMT ≈ 0 distort model training. Capping at 5 removes outlier distortion while preserving the full meaningful range of the feature.</p>
+      </div>
+      <div class="decision-card highlight">
+        <h4>🔬 Friedman + Nemenyi, not just a ranking table</h4>
+        <p>Descriptive AUC ranking is insufficient academically. Friedman (χ²=32.44, p&lt;0.001) + Nemenyi post-hoc (Demšar, 2006) provide inferential statistical evidence. XGB_Tuned and RF_Tuned statistically equivalent (p=1.000).</p>
+      </div>
+      <div class="decision-card highlight">
+        <h4>🏆 XGB_Tuned selected for PD scoring</h4>
+        <p>Highest ROC-AUC (0.7811), best recall on defaulters (0.6172). Decision bands: Approve (PD&lt;0.20), Review (0.20–0.50), Reject (&gt;0.50). Statistically indistinguishable from RF_Tuned.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ASSUMPTIONS -->
+  <section>
+    <div class="section-title">◆ Model assumptions — status</div>
+    <div class="legend-strip">
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--sage);"></span>Met</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--mustard);"></span>Partial</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--navy2);"></span>N/A — non-parametric model</div>
+    </div>
+    <div class="assumption-grid">
+      <div class="assumption-card partial">
+        <div class="assumption-header">
+          <div><div class="assumption-model">Logistic Regression</div><div class="assumption-title">Linearity of log-odds</div></div>
+          <span class="pill pill-partial">Partial</span>
+        </div>
+        <div class="assumption-desc">LR assumes linear relationship between features and log-odds. PAY_0 and repayment ratios have non-linear relationships with default (Spearman > Pearson confirms monotonic non-linearity). Partially mitigated by engineered ratio features.</div>
+      </div>
+      <div class="assumption-card met">
+        <div class="assumption-header">
+          <div><div class="assumption-model">Logistic Regression</div><div class="assumption-title">No perfect multicollinearity</div></div>
+          <span class="pill pill-met">Met</span>
+        </div>
+        <div class="assumption-desc">PAY_0_BIN dropped (high correlation with PAY_0). PAY_RATIO features derived from BILL_AMT and PAY_AMT but capture ratio information distinct from raw amounts. No perfect collinearity detected.</div>
+      </div>
+      <div class="assumption-card met">
+        <div class="assumption-header">
+          <div><div class="assumption-model">Logistic Regression</div><div class="assumption-title">Independent observations</div></div>
+          <span class="pill pill-met">Met</span>
+        </div>
+        <div class="assumption-desc">Each row is a distinct customer. No repeated measurements or time-series dependency. Cross-sectional dataset — independence fully satisfied.</div>
+      </div>
+      <div class="assumption-card partial">
+        <div class="assumption-header">
+          <div><div class="assumption-model">Logistic Regression</div><div class="assumption-title">No complete separation</div></div>
+          <span class="pill pill-partial">Partial</span>
+        </div>
+        <div class="assumption-desc">30,000 observations sufficient overall. However PAY_0=7 (n=9, default rate 77.78%) and PAY_0=8 (n=19) create near-complete separation for those subgroups. May cause quasi-separation in LR coefficient estimation for those categories.</div>
+      </div>
+      <div class="assumption-card na">
+        <div class="assumption-header">
+          <div><div class="assumption-model">Decision Tree / Random Forest / XGBoost</div><div class="assumption-title">No distributional assumptions</div></div>
+          <span class="pill pill-na">N/A — Free</span>
+        </div>
+        <div class="assumption-desc">All three tree-based models are non-parametric. No assumptions about feature distributions, linearity, or normality. Robust to the right-skewed BILL_AMT and PAY_AMT columns. Feature interactions captured automatically.</div>
+      </div>
+      <div class="assumption-card met">
+        <div class="assumption-header">
+          <div><div class="assumption-model">Random Forest</div><div class="assumption-title">Sufficient trees and diversity</div></div>
+          <span class="pill pill-met">Met</span>
+        </div>
+        <div class="assumption-desc">300 trees in baseline; 100 or 300 in tuning. Bootstrap sampling + random feature subsets (sqrt(33)≈6 per split) ensures diversity. OOB error stabilises well before 300 trees at n=24,000. n_jobs=-1 parallelised.</div>
+      </div>
+      <div class="assumption-card met">
+        <div class="assumption-header">
+          <div><div class="assumption-model">XGBoost</div><div class="assumption-title">Class imbalance correction</div></div>
+          <span class="pill pill-met">Met</span>
+        </div>
+        <div class="assumption-desc">scale_pos_weight = 23,364/6,636 ≈ 3.52. Scales the gradient of the positive class during boosting, giving defaulters 3.52× more influence. Equivalent to class_weight="balanced" in sklearn. Logloss eval_metric appropriate for probabilistic output.</div>
+      </div>
+      <div class="assumption-card met">
+        <div class="assumption-header">
+          <div><div class="assumption-model">All models</div><div class="assumption-title">No data leakage</div></div>
+          <span class="pill pill-met">Met</span>
+        </div>
+        <div class="assumption-desc">All preprocessing fitted on X_train only, applied to X_test via Pipeline.transform(). Feature engineering uses within-row arithmetic only — no cross-row aggregation — so applying before the split is valid. Stratified split applied before any pipeline fitting.</div>
+      </div>
+      <div class="assumption-card met">
+        <div class="assumption-header">
+          <div><div class="assumption-model">All models</div><div class="assumption-title">Appropriate evaluation metric</div></div>
+          <span class="pill pill-met">Met</span>
+        </div>
+        <div class="assumption-desc">ROC-AUC primary — appropriate for imbalanced binary classification. Accuracy avoided. Recall on defaulters tracked separately (asymmetric misclassification cost in credit risk). Friedman + Nemenyi (Demšar, 2006) used for inferential comparison, not descriptive ranking alone.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUMMARY -->
+  <section>
+    <div class="section-title">◆ Executive summary</div>
+    <div class="summary-box">
+      <p>
+        The PD modelling pipeline is substantially complete. The dataset is clean (no missing values, no duplicates) but exhibits a <strong>22.12% default rate</strong> requiring explicit imbalance correction across all models. Outlier investigation identified one extreme LIMIT_BAL customer (1,000,000) and near-complete separation in rare PAY_0 categories — both retained in the dataset after review. Key transformations applied include: categorical recoding of undocumented EDUCATION and MARRIAGE codes, PAY_RATIO clipping at 5 to control extreme outliers, BILL_AMT clipping at 0 for utilization, StandardScaler on all numeric features (train-fitted only), and OneHotEncoder on categorical features inside a leakage-free Pipeline.
+        <br><br>
+        The strongest predictor is <strong>PAY_0 (r=0.325)</strong> with a clear risk gradient (12.8% on-time → 75.8% at 3 months late). Ten engineered features were added. Nine models were trained. <strong>XGB_Tuned (AUC=0.7811)</strong> and <strong>RF_Tuned (AUC=0.7765)</strong> are joint best — statistically indistinguishable (Nemenyi p=1.000), both significantly outperforming LR (p=0.003, Friedman χ²=32.44). GridSearchCV produced zero improvement for LR or DT. PCA+LR performed worst (AUC=0.7052), confirming the feature space is well-structured and dimensionality reduction is not beneficial here. Remaining: DeLong testing, SHAP explainability, and governance documentation.
+      </p>
+    </div>
+  </section>
+
+  <div class="foot">
+    <span>Credit Risk PD Model · UCI Default of Credit Card Clients (Yeh & Lien, 2009)</span>
+    <span>Kasia McArt · Thesis Work in Progress</span>
+  </div>
+
+</div>
+</body>
+</html>
